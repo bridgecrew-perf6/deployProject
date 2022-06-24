@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>channels聊天室</title>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>基于channles的聊天室</h1>
+    <div>
+        <input type="text" id="content" placeholder="请输入消息">
+        <button onclick="sendMessage();" >发送</button>
+        <button onclick="wsClose();" >断开链接</button>
+    </div>
+    <h1>聊天记录</h1>
+    <div class="record">
+
+    </div>
+    <script>
+        var ws = new WebSocket('ws://127.0.0.1:8000/chat/');
+        function sendMessage(){
+            ws.send($("#content").val())
+        }
+        function wsClose(){
+            ws.close();
+        }
+         //3.服务端发送数据自动触发
+        ws.onmessage = function (arg){
+            var div = $('<div>');
+            div.text(arg.data);
+            $(".record").append(div)
+        };
+    </script>
+</body>
+</html>

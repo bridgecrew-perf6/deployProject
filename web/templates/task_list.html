@@ -1,0 +1,64 @@
+{% extends 'layout.html' %}
+{% block content %}
+    <div class="container">
+        <h1>{{ project_obj.title }} - {{ project_obj.get_env_display }}发布任务单列表</h1>
+        <div>
+            <a href="{% url 'task_add' pid=project_obj.id %}" class="btn btn-success" style="margin: 10px 0;">添加</a>
+        </div>
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>标识</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in queryset %}
+                <tr>
+                    <td>{{ row.id }}</td>
+                    <td>{{ row.uid }}</td>
+                    <td>{{ row.get_status_display }}</td>
+                    <td><a href="{% url 'deploy' task_id=row.id %}">去发布</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        function removeRow(that, rid){
+
+            ////////模态对话框方式：找到要删除的id
+            {#var id = $("#serverId").text()#}
+            console.log("sid:" + rid);
+
+            var result = confirm("是否确定要删除？")
+            if (!result){
+                return;
+            }
+
+            //从数据库删除
+            $.ajax({
+                {#url: "{% url 'server_del' sid=rid %}",#}
+                url: "/project/del/" + rid + "/",
+                type: "post",
+                data: {'csrfmiddlewaretoken':'{{ csrf_token }}'},
+                dataType: "JSON",
+                success:function (res){
+                    if(res.status == "success"){
+                        {#location.href = location.href;#}
+                        //从页面删除
+                        $(that).parent().parent().remove();
+                    }
+                }
+            })
+        }
+
+    </script>
+{% endblock %}

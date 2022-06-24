@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天室</title>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>聊天室:{{ user }}</h1>
+    <div>
+        <input type="text" id="content" placeholder="请输入消息">
+        <button onclick="sendMessage()" >发送</button>
+{#        <input type="button" value="发送" onclick="sendMessage();" id="btn">#}
+    </div>
+    <h1>聊天记录</h1>
+    <div class="record">
+
+    </div>
+
+
+    <script>
+        {#var ws = new WebSocket('ws://127.0.0.1:8000');#}
+
+        //页面加载完毕后就执行
+        $(function (){
+            getMsg();
+
+        })
+
+        function getMsg(){
+            $.ajax({
+                url: "{% url 'get_msg' %}",
+                type: "get",
+                dataType: "JSON",
+                data:{'name': '{{ user }}'},
+                success:function (res){
+                    if(res.status){
+                        //有消息就进行展示
+                        var p=$("<p>");
+                        p.text(res.msg);
+                        $(".record").append(p);
+                        console.log(res.msg);
+
+                    }
+                    // 没有消息就继续调用自己
+                    getMsg();
+                }
+            })
+        }
+
+        //将用户输入发生到后端
+        function sendMessage(){
+            $.ajax({
+                url: "{% url 'send_msg' %}",
+                type: 'get',
+                dataType: 'JSON',
+                data:{'msg': $("#content").val(), 'csrfmiddlewaretoken':'{{ csrf_token }}'},
+                success:function (res){
+                    console.log(res);
+
+                }
+            })
+
+        }
+    </script>
+</body>
+</html>

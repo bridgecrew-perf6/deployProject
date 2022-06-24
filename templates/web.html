@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天室</title>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>聊天室:{{ user }}</h1>
+    <div>
+        <input type="text" id="content" placeholder="请输入消息">
+    </div>
+    <h1>聊天记录</h1>
+    <div class="record">
+
+    </div>
+    <script>
+
+        var ws = new WebSocket('ws://127.0.0.1:8000/chat/');
+
+        //1.握手成功后自动触发onopen
+        ws.onopen = function (){
+            console.log("链接成功");
+        }
+        //2.发送数据
+        function sendMsg(){
+            console.log("发送数据");
+            ws.send($("#content").val())
+        }
+        //3.服务端发送数据自动触发
+        ws.onmessage = function (arg){
+            // args不是真正的数据对象 真正的数据在该对象的data属性中
+            alert(arg.data)
+        };
+        //4.浏览器断开链接
+        ws.onclose = function (){
+            ws.close();
+        }
+
+
+    </script>
+</body>
+</html>

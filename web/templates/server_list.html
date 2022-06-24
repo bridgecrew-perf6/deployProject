@@ -1,0 +1,118 @@
+{% extends 'layout.html' %}
+{% block content %}
+    <div class="container">
+        <h1>服务器列表</h1>
+        <div>
+            <a href="{% url 'server_add' %}" class="btn btn-success" style="margin: 10px 0;">添加</a>
+        </div>
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>主机名</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for server in queryset %}
+                <tr>
+                    <td>{{ server.id }}</td>
+                    <td>{{ server.hostname }}</td>
+                    <td>
+                        <a href="{% url 'server_edit' sid=server.id %}"><i class="fa fa-edit"
+                                                                           aria-hidden="true"></i></a>
+                        |
+                        {#                  <a type="button" class="btn" onclick="showModal(this);"><i class="fa fa-trash"></i></a>#}
+                        <a onclick="removeRow(this, {{ server.id }});"><i class="fa fa-trash"></i></a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+
+        </table>
+    </div>
+
+    <div class="modal fade" tabindex="-1" role="dialog" id="myModal" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">是否确定要删除以下服务器?</h4>
+                </div>
+                <div class="modal-body">
+                    <p id="serverId" class="hide">1</p>
+                    <p id="serverContent"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary">删除</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        function showModal(that) {
+            //给模态对话框的内容赋值
+            $("#serverContent").text($(that).parent().parent().find("td:first").next().text());
+            $("#serverId").text($(that).parent().parent().find("td:first").text());
+            //显示模态对话框
+            $('#myModal').modal('show');
+
+        }
+
+        function removeRow(that, rid) {
+            {#console.log("sid:" + rid);#}
+            // alert确认框
+            //var result = confirm("是否确定要删除？")
+            //console.log("result:" + result);
+            //if (!result) {
+            //    return;
+            //}
+
+            //SWEETALERT
+            var result = swal({
+                title: "是否确定要删除？",
+                text: "文件将被永久删除，此操作不可恢复!",
+                icon: "warning",
+                buttons: ["容我三思", "是的，删除!"],
+                dangerMode: true,
+                //confirmButtonColor: "#DD6B55",
+                //closeOnConfirm: false,
+            })
+                .then((willDelete) => {
+                    if (willDelete) {
+                        swal("删除成功", {
+                            icon: "success",
+                        });
+                        //从数据库删除
+                        $.ajax({
+                            {#url: "{% url 'server_del' sid=rid %}",#}
+                            url: "/server/del/" + rid + "/",
+                            type: "post",
+                            data: {'csrfmiddlewaretoken': '{{ csrf_token }}'},
+                            dataType: "JSON",
+                            success: function (res) {
+                                if (res.status == "success") {
+                                    {#location.href = location.href;#}
+                                    //从页面删除
+                                    $(that).parent().parent().remove();
+                                }
+
+                            }
+                        })
+                    } else {
+                        swal("已取消");
+                    }
+                });
+
+        }
+
+    </script>
+{% endblock %}

@@ -1,0 +1,83 @@
+websocket内部原理大致可以分为两部分
+
+1.握手环节:基于http，验证服务端是否支持websocket协议
+	- 浏览器访问服务端
+    	浏览器会自动生成一个随机字符串，然后将该字符串自己保留一份给服务端也发送一份，这一阶段的数据交互是基于HTTP协议的(该随机字符串是放在请求头中的)
+
+        GET / HTTP/1.1
+        Host: 127.0.0.1:8080
+        Connection: Upgrade
+        ...
+        Sec-WebSocket-Key: kQHq6MzLH7Xm1rSsAyiD8g==
+        Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+
+
+    - 浏览器和服务端手上都有随机字符串
+    	服务端从请求头中获取随机字符串之后，会先拿该字符串跟magic string(固定的随机字符串)做字符串的拼接，会对拼接之后的数据进行加密处理(sha1/base64)  于此同时浏览器那边也会做相同的操作
+
+    - 服务端将处理好的随机字符串再次发送给浏览器(响应头)
+
+    - 浏览器会对比自己生成的随机字符串和服务端发送的随机字符串是否一致,如果一致说明支持websocket一致,如果不支持则会报错不支持
+
+
+2.收发数据:密文传输,数据解密的问题
+    ps:
+        1.基于网络传输,数据都是二进制格式(python中的bytes类型)
+        2.单位换算
+    - 数据解密
+    	1.先读取第二个字节的后七位二进制数(payload)
+
+		2.根据payload不同做不同的处理
+			=127:继续读8个字节
+			=126:继续读2个字节
+			<=125:不再往后读取
+
+		3.往后读取固定长度的4个字节的数据(masking-key)
+			根据该值计算出真实数据
+"""
+# 这些原理了解即可 关键需要说出几个关键字
+	握手环节
+  magic string  sha1/base64
+  127、126、125
+  payload masking-key
+
+
+
+后端使用
+1. 注册channels
+settings文件中注册
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'app01.apps.App01Config',
+    'channels'
+]
+启动django项目会报错CommandError: You have not set ASGI_APPLICATION, which is needed to run the server. 需要进行配置
+
+2. 配置参数
+settings.py
+ASGI_APPLICATION = 'app01.routing.application'
+# ASGI_APPLICATION = '项目名.routing.py文件名.application变量名'
+
+3. 创建文件
+项目名同名文件夹下创建routing.py文件并书写固定代码
+from channels.routing import ProtocolTypeRouter,URLRouter
+
+application = ProtocolTypeRouter({
+    'websocket':URLRouter([
+
+        # 这里些websocket相关的url与视图函数对应关系
+
+    ])
+})
+上述三步配置完成后，再次启动django，就会既支持http协议又支持websocket协议
+之后关于http的url与视图函数对应关系还是在原来的urls.py中书写
+关于websocket的url与视图函数对应关系则在routing.py中书写
+
+3.通过ajax删除数据，这样即使有分页的话也不用担心数据错乱问题
+4.借助sweetalert插件，实现删除时二次弹窗确认

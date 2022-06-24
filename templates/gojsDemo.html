@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div id="myDiagramDiv" style="width: 1000px;height: 350px;background-color: #DAE4E4;"></div>
+
+    <script src="{% static 'js/go.js' %}"></script>
+    <script src="{% static 'js/Figures.js' %}"></script>
+    <script>
+        {#var $=go.GraphObject.make;#}
+        {#//step 1:创建图表#}
+        {#var myDiagram = $(go.Diagram, "myDiagramDiv")#}
+        {#//step 2: 创建一个节点#}
+        {#var node = $(go.Node,$(go.TextBlock, {text: "笑笑"}));#}
+        {#//step 3: 将节点添加到图表中#}
+        {#myDiagram.add(node);#}
+
+
+         //**********************shape
+        {# var $ = go.GraphObject.make;#}
+        {##}
+        {#var myDiagram = $(go.Diagram, "myDiagramDiv"); // 创建图表，用于在页面上画图#}
+        {##}
+        {#var node1 = $(go.Node,#}
+        {#    $(go.Shape, {figure: "Ellipse", width: 40, height: 40})#}
+        {#);#}
+        {#myDiagram.add(node1);#}
+        {##}
+        {#var node2 = $(go.Node,#}
+        {#    $(go.Shape, {figure: "RoundedRectangle", width: 40, height: 40, fill: 'green',stroke:'red'})#}
+        {#);#}
+        {#myDiagram.add(node2);#}
+        {##}
+        {#var node3 = $(go.Node,#}
+        {#    $(go.Shape, {figure: "Rectangle", width: 40, height: 40, fill: null})#}
+        {#);#}
+        {#myDiagram.add(node3);#}
+        {##}
+        {##}
+        {#var node4 = $(go.Node,#}
+        {#    $(go.Shape, {figure: "Diamond", width: 40, height: 40, fill: '#ddd'})#}
+        {#);#}
+        {#myDiagram.add(node4);#}
+        {##}
+        {#// 需要引入Figures.js#}
+        {#var node5 = $(go.Node,#}
+        {#    $(go.Shape, {figure: "Club", width: 40, height: 40, fill: 'red'})#}
+        {#);#}
+        {#myDiagram.add(node5);#}
+
+
+        var $ = go.GraphObject.make;
+        var diagram = $(go.Diagram, "myDiagramDiv",{
+            layout: $(go.TreeLayout, {
+                angle: 0,
+                nodeSpacing: 20,
+                layerSpacing: 70
+            })
+        });
+        // 生成一个节点模版
+        diagram.nodeTemplate = $(go.Node, "Auto",
+            $(go.Shape, {
+                figure: "RoundedRectangle",
+                fill: 'yellow',
+                stroke: 'yellow'
+            }, new go.Binding("figure", "figure"), new go.Binding("fill", "color"), new go.Binding("stroke", "color")),
+            $(go.TextBlock, {margin: 8}, new go.Binding("text", "text"))
+        );
+        // 生成一个箭头模版
+        diagram.linkTemplate = $(go.Link,
+            {routing: go.Link.Orthogonal},
+            $(go.Shape, {stroke: 'yellow'}, new go.Binding('stroke', 'link_color')),
+            {#$(go.Shape, {toArrow: "OpenTriangle", stroke: 'yellow'}, new go.Binding('stroke', 'link_color'))#}
+        );
+        // 数据集合，以后替换ajax请求   注意使用key和parent来规定箭头的指向
+        var nodeDataArray = [
+            {key: "start", text: '开始', figure: 'Ellipse', color: "lightgreen"},
+            {key: "download", parent: 'start', text: '下载代码', color: "lightgreen", link_text: '执行中...'},
+            {key: "compile", parent: 'download', text: '本地编译', color: "lightgreen"},
+            {key: "zip", parent: 'compile', text: '打包', color: "red", link_color: 'red'},
+            {key: "c1", text: '服务器1', parent: "zip"},
+            {key: "c11", text: '服务重启', parent: "c1"},
+            {key: "c2", text: '服务器2', parent: "zip"},
+            {key: "c21", text: '服务重启', parent: "c2"},
+            {key: "c3", text: '服务器3', parent: "zip"},
+            {key: "c31", text: '服务重启', parent: "c3"},
+        ];
+        diagram.model = new go.TreeModel(nodeDataArray);
+
+        // 动态控制节点颜色变化   后端给一个key值 即可查找图表并修改
+        var node = diagram.model.findNodeDataForKey("zip");
+        diagram.model.setDataProperty(node, "color", "lightgreen");
+
+
+
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
